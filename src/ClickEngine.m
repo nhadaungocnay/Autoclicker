@@ -130,7 +130,6 @@ static CGEventRef upstreamRewriterTapCallback(CGEventTapProxy proxy, CGEventType
         _cachedCrdPid = 0;
         
         [self setupEventSource];
-        [self setupUpstreamRewriterTap];
     }
     return self;
 }
@@ -309,11 +308,6 @@ static CGEventRef upstreamRewriterTapCallback(CGEventTapProxy proxy, CGEventType
 #pragma mark - Upstream Event Tap (Chrome Remote Desktop Anti-Lockout)
 
 - (void)setupUpstreamRewriterTap {
-    if (_upstreamTap && CFMachPortIsValid(_upstreamTap)) {
-        CGEventTapEnable(_upstreamTap, true);
-        return;
-    }
-    
     [self removeUpstreamRewriterTap];
     _cachedCrdPid = getChromeRemoteDesktopHostPid();
     
@@ -498,6 +492,12 @@ static CGEventRef upstreamRewriterTapCallback(CGEventTapProxy proxy, CGEventType
             // and spoof the PID to CRD PID (remoting_me2me_host) right before CRD's tap sees it!
             CGEventSetIntegerValueField(down, kCGEventSourceUserData, AUTOCLICKER_MAGIC);
             CGEventSetIntegerValueField(up, kCGEventSourceUserData, AUTOCLICKER_MAGIC);
+            
+            pid_t crdPid = _cachedCrdPid > 0 ? _cachedCrdPid : getChromeRemoteDesktopHostPid();
+            if (crdPid > 0) {
+                CGEventSetIntegerValueField(down, kCGEventSourceUnixProcessID, crdPid);
+                CGEventSetIntegerValueField(up, kCGEventSourceUnixProcessID, crdPid);
+            }
             
             if (isBackgroundApp) {
                 CGEventPostToPid(_activeSettings.targetPid, down);

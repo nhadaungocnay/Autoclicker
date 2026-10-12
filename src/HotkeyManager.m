@@ -171,7 +171,7 @@ static CGEventRef keyboardTapCallback(CGEventTapProxy proxy, CGEventType type, C
     
     CGEventMask mask = CGEventMaskBit(kCGEventKeyDown);
     _keyboardTap = CGEventTapCreate(kCGSessionEventTap,
-                                    kCGHeadInsertEventTap,
+                                    kCGTailAppendEventTap,
                                     kCGEventTapOptionListenOnly,
                                     mask,
                                     keyboardTapCallback,
